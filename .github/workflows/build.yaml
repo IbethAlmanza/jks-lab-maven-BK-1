@@ -1,0 +1,35 @@
+name: Build & Publish (OIDC)
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-publish:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      # JF_URL como Variable de repositorio/entorno (Settings → Variables)
+      - name: Setup JFrog CLI (OIDC)
+        uses: jfrog/setup-jfrog-cli@v4
+        env:
+          JF_URL: ${{ vars.JF_URL }}     # ej: https://osenterpriseibk.jfrog.io
+        with:
+          oidc-provider-name: setup-jfrog-cli
+
+          # Si en JFrog configuraste audience, descomenta:
+          # oidc-audience: osenterpriseibk
+
+          jf rt u "target/*.jar" \
+            "ibk-generic-dev/${{ github.repository }}/$GITHUB_RUN_NUMBER/" \
+            --flat=true
