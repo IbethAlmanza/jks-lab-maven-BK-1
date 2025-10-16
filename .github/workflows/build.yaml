@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-publish:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -26,10 +26,18 @@ jobs:
           JF_URL: ${{ vars.JF_URL }}     # ej: https://osenterpriseibk.jfrog.io
         with:
           oidc-provider-name: setup-jfrog-cli
-
           # Si en JFrog configuraste audience, descomenta:
           # oidc-audience: osenterpriseibk
 
+      - name: Verificar login
+        run: jf rt ping
+
+      - name: Build
+        run: mvn -q -B clean package
+
+      - name: Upload JAR
+        run: |
+          # Sube a un repo "generic" (ajusta nombre/ruta a tu estándar)
           jf rt u "target/*.jar" \
             "ibk-generic-dev/${{ github.repository }}/$GITHUB_RUN_NUMBER/" \
             --flat=true
